@@ -1,0 +1,11 @@
+{
+  "countdown_timer": {
+    "name": "Countdown Timer",
+    "settings": {
+      "api_root": {
+        "label": "App API root (optional)",
+        "info": "Leave blank to use same-origin /apps/countdown. Set to full app URL if using custom domain."
+      }
+    }
+  }
+}

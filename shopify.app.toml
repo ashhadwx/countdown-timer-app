@@ -1,0 +1,34 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+client_id = "c00a6cd5facdaa0d73be8ac4d5ae8ae3"
+name = "Countdown Timer"
+application_url = "https://example.com"
+embedded = true
+
+# Directory layout: server (backend), admin-app (Polaris UI), theme-extension (Theme App Extension)
+web_directories = ["server"]
+# Must point to the directory that contains shopify.extension.toml
+extension_directories = ["theme-extension/countdown-timer"]
+
+[build]
+automatically_update_urls_on_dev = true
+
+[webhooks]
+api_version = "2026-01"
+
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+# Required for product/collection picker in Countdown Timer (targeting).
+# read_products covers both products and collections (Custom/Smart) per Shopify docs.
+scopes = "read_products,write_app_proxy"
+optional_scopes = [ ]
+use_legacy_install_flow = false
+
+[app_proxy]
+# Storefront requests to https://store.myshopify.com/apps/countdown/... are proxied here. With app dev, URL is updated to your tunnel.
+url = "/apps/countdown"
+subpath = "countdown"
+prefix = "apps"
+
+[auth]
+redirect_urls = [ ]

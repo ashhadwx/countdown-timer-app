@@ -1,0 +1,27 @@
+{
+  "name": "countdown-timer-analytics",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "server/index.js",
+  "license": "UNLICENSED",
+  "scripts": {
+    "shopify": "shopify",
+    "lint": "eslint server admin-app widget --max-warnings 30",
+    "build": "shopify app build",
+    "build:frontend": "cd admin-app && npm run build",
+    "build:widget": "cd widget && npm run build",
+    "build:widget:check": "cd widget && npm run build:check-size",
+    "dev": "shopify app dev",
+    "info": "shopify app info",
+    "generate": "shopify app generate",
+    "deploy": "shopify app deploy"
+  },
+  "dependencies": {
+    "@shopify/app": "^3.0.0",
+    "@shopify/cli": "^3.0.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "eslint": "^9.0.0"
+  }
+}

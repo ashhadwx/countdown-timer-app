@@ -1,0 +1,6 @@
+# Frontend + backend so the CLI proxy forwards "/" and "/?embedded=..." to this app (fixes "Invalid path /?" in admin)
+roles = ["frontend", "backend"]
+port = 3000
+
+[commands]
+dev = "npm run dev"
