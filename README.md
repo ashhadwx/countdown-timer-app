@@ -1,8 +1,76 @@
-# Shopify App Template for Node
+# Countdown Timer + Analytics Shopify App
 
-This is a template for building a [Shopify app](https://shopify.dev/docs/apps/getting-started) using Node and React. It contains the basics for building a Shopify app.
+## Overview
 
-Rather than cloning this repo, you can use your preferred package manager and the Shopify CLI with [these steps](#installing-the-template).
+A Shopify app that allows merchants to create countdown timers for promotions and display them on product pages.
+
+## Tech Stack
+
+- **Node.js** + **Express** — backend API
+- **MongoDB** — timer configs and analytics
+- **React** + **Shopify Polaris** — admin UI
+- **Preact** — lightweight storefront widget
+- **Theme App Extensions** — countdown block for themes
+
+## Architecture
+
+| Layer        | Stack / Description                                      |
+| ------------ | -------------------------------------------------------- |
+| Admin App    | React + Polaris (embedded in Shopify admin)              |
+| Backend      | Node + Express API                                       |
+| Database     | MongoDB                                                  |
+| Widget       | Lightweight Preact bundle (&lt;30 KB gzipped)            |
+
+The widget loads timer configuration via an optimized storefront API endpoint.
+
+## Features
+
+- **Fixed timers** — start/end date and time
+- **Evergreen timers** — rolling countdown from first view
+- **Product/collection targeting** — show timer on specific products or collections
+- **Timer styling** — colors, size, position
+- **Basic analytics** — impression counts per timer
+
+## API Endpoints
+
+- **Admin (session required):** `GET /api/timers`, `GET /api/timers/:id`, `POST /api/timers`, `PATCH /api/timers/:id`, `DELETE /api/timers/:id`
+- **Storefront (widget):** `GET /api/storefront/timer` (one active timer per context), `POST /api/storefront/impression`
+
+Full request/response details: [docs/API.md](docs/API.md).
+
+## Performance
+
+- Timer API responses use **cache headers** (`Cache-Control: public, max-age=60`)
+- **Lightweight widget** bundle (Preact, &lt;30 KB gzipped)
+- **No layout shifts** — widget reserves space and only mounts when a valid timer is returned
+
+## Setup (quick)
+
+1. **Clone** the repo and install dependencies: `npm install`
+2. **Create `.env`** (copy from `.env.example`):
+
+   ```env
+   SHOPIFY_API_KEY=
+   SHOPIFY_API_SECRET=
+   MONGODB_URI=
+   ```
+
+3. **Link app:** `npm run shopify app config link`
+4. **Build admin:** `npm run build:frontend`
+5. **Run dev server:** `npm run dev` (or `shopify app dev`)
+
+See [Setup](#setup) below for prerequisites and full steps.
+
+## Tests
+
+Unit tests go in `tests/` (see [tests/README.md](tests/README.md)). Add a test script to `package.json` (e.g. Vitest or Jest) and run `npm test`.
+
+## Assumptions
+
+- **One active timer per product** (or section) returned by the storefront API.
+- **Analytics** counts impressions only (one per page load when the widget is visible).
+
+---
 
 ## Project structure
 

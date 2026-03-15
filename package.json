@@ -6,6 +6,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "shopify": "shopify",
+    "test": "node --test tests/*.test.js",
     "lint": "eslint server admin-app widget --max-warnings 30",
     "build": "shopify app build",
     "build:frontend": "cd admin-app && npm run build",
