@@ -34,9 +34,6 @@ const fixedTimer = z.object({
   type: z.literal("fixed"),
   startAt: isoDate,
   endAt: isoDate,
-}).refine((data) => data.endAt > data.startAt, {
-  message: "End date/time must be after start",
-  path: ["endAt"],
 });
 
 const evergreenTimer = z.object({
@@ -46,10 +43,17 @@ const evergreenTimer = z.object({
 });
 
 /** For POST /api/timers — create (all required fields per type) */
-export const createTimerSchema = z.discriminatedUnion("type", [
-  fixedTimer,
-  evergreenTimer,
-]);
+export const createTimerSchema = z
+  .discriminatedUnion("type", [fixedTimer, evergreenTimer])
+  .superRefine((data, ctx) => {
+    if (data.type === "fixed" && !(data.endAt > data.startAt)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "End date/time must be after start",
+        path: ["endAt"],
+      });
+    }
+  });
 
 /**
  * Normalize body for create: ensure type default, coerce dates/numbers from strings.
