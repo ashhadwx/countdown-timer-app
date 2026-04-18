@@ -1,10 +1,10 @@
 # Theme App Extension for countdown widget on product pages.
 # https://shopify.dev/docs/apps/build/online-store/theme-app-extensions
 
-api_version = "2024-01"
+api_version = "2024-10"
 
 [[extensions]]
 name = "Countdown Timer"
 handle = "countdown-timer"
 uid = "2d6e9a3f-aa62-633c-0ce3-390dc16527cea09b75b2"
-type = "theme"
+type = "theme_app_extension"

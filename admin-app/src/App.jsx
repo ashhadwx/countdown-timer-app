@@ -31,6 +31,7 @@ export default function App() {
   const formContainerRef = React.useRef(null);
 
   const { data: timersData, loading: timersLoading, error: timersError, refetch: refetchTimers } = useFetch("/api/timers");
+  const { data: planData, refetch: refetchPlan } = useFetch("/api/shop/plan");
   const { data: productsData, loading: productsLoading, error: productsError, fetch: fetchProducts } = useFetch("/api/shop/products", { immediate: false });
   const { data: collectionsData, loading: collectionsLoading, error: collectionsError, fetch: fetchCollections } = useFetch("/api/shop/collections", { immediate: false });
 
@@ -203,7 +204,11 @@ export default function App() {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setFormError(data.error || "Request failed");
+        if (data.code === "PLAN_LIMIT_REACHED") {
+          setFormError(data.error || "Plan limit reached. Upgrade to create more timers.");
+        } else {
+          setFormError(data.error || "Request failed");
+        }
         return;
       }
       setModalOpen(false);
@@ -222,6 +227,32 @@ export default function App() {
       }
     } catch (e) {
       console.error(e);
+    }
+  };
+
+  const handleUpgrade = async () => {
+    try {
+      const res = await fetch("/api/billing/upgrade", {
+        method: "POST",
+        credentials: "include",
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        alert(data.error || "Failed to start upgrade.");
+        return;
+      }
+      if (data.alreadyActive) {
+        refetchPlan();
+        return;
+      }
+      if (data.confirmationUrl) {
+        window.top.location.href = data.confirmationUrl;
+        return;
+      }
+      alert("Unexpected billing response.");
+    } catch (e) {
+      console.error(e);
+      alert("Failed to start upgrade.");
     }
   };
 
@@ -250,6 +281,18 @@ export default function App() {
         <Layout>
           <Layout.Section>
             <Card>
+              {planData && (
+                <TextContainer spacing="tight">
+                  <p>
+                    <strong>Current plan:</strong> {planData.plan === "pro" ? "Pro" : "Free"}
+                  </p>
+                  {planData.plan !== "pro" && (
+                    <Button onClick={handleUpgrade} primary>
+                      Upgrade to Pro
+                    </Button>
+                  )}
+                </TextContainer>
+              )}
               <TextField
                 label="Search timers"
                 labelHidden

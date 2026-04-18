@@ -12,6 +12,7 @@ import {
   validationErrorResponse,
 } from "../lib/timerValidation.js";
 import { sanitizeString } from "../lib/sanitize.js";
+import { enforceTimerPlanLimit } from "../middleware/plan.js";
 
 const router = Router();
 
@@ -68,8 +69,8 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// Create timer
-router.post("/", async (req, res) => {
+// Create timer (enforces plan limits for Free vs Pro)
+router.post("/", enforceTimerPlanLimit, async (req, res) => {
   try {
     const validated = parseCreateBody(req.body || {});
     const payload = buildTimerPayload(validated, req.shop);

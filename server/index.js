@@ -12,6 +12,7 @@ import PrivacyWebhookHandlers from "./privacy.js";
 import { connectMongo, disconnectMongo } from "./lib/db.js";
 import { attachShopFromSession } from "./middleware/shopValidation.js";
 import timersRouter from "./routes/timers.js";
+import { attachShopPlan, serializePlan } from "./middleware/plan.js";
 
 /** Rate limit placeholder. In production, replace with in-memory or Redis limiter. */
 function rateLimitPlaceholder(_scope = "api") {
@@ -54,7 +55,67 @@ app.use("/apps/countdown/api/storefront", rateLimitPlaceholder("storefront"), st
 app.use("/api/*", shopify.validateAuthenticatedSession());
 
 app.use("/api/*", rateLimitPlaceholder("admin"));
-app.use("/api/timers", attachShopFromSession, timersRouter);
+app.use("/api/timers", attachShopFromSession, attachShopPlan, timersRouter);
+
+// Data & Privacy info endpoint for the admin app.
+app.get("/api/shop/data-privacy", (_req, res) => {
+  res.json({
+    uninstallDeletesData: true,
+    notes: [
+      "All timers and embedded analytics are deleted when the app is uninstalled.",
+      "You can request data export or deletion by contacting the app developer.",
+    ],
+  });
+});
+
+// Basic plan info endpoint for the admin app (Free vs Pro, no billing flow yet).
+app.get("/api/shop/plan", attachShopFromSession, attachShopPlan, (req, res) => {
+  // @ts-ignore - shopPlan is attached by attachShopPlan middleware
+  res.json(serializePlan(req.shopPlan));
+});
+
+// Start or resume upgrade to Pro plan; returns Shopify billing confirmation URL.
+app.post("/api/billing/upgrade", async (_req, res) => {
+  try {
+    const session = res.locals.shopify?.session;
+    if (!session) {
+      return res.status(401).json({ error: "Missing Shopify session" });
+    }
+
+    // If Pro is already active, do nothing.
+    const checkResult = await shopify.api.billing.check({
+      session,
+      plans: ["ProPlan"],
+      isTest: process.env.NODE_ENV !== "production",
+      returnObject: true,
+    });
+
+    if (checkResult?.hasActivePayment) {
+      return res.json({ alreadyActive: true });
+    }
+
+    const host = process.env.HOST || shopify.config.auth.callbackPath || "";
+    const returnUrl = host.startsWith("http")
+      ? host
+      : `${process.env.HOST || ""}/api/auth/callback`;
+
+    const confirmationUrl = await shopify.api.billing.request({
+      session,
+      plan: "ProPlan",
+      isTest: process.env.NODE_ENV !== "production",
+      returnUrl,
+    });
+
+    return res.json({ confirmationUrl });
+  } catch (err) {
+    console.error("billing upgrade error", err);
+    const message =
+      err?.errorData?.[0]?.message ||
+      err?.message ||
+      "Failed to create billing session";
+    return res.status(500).json({ error: message });
+  }
+});
 app.get("/api/shop/products", async (_req, res) => {
   try {
     const client = new shopify.api.clients.Graphql({
